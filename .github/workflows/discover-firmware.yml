@@ -9,6 +9,8 @@ on:
       - main
     paths:
       - '.github/workflows/discover-firmware.yml'
+      - 'scripts/parse_prober_log.py'
+      - 'scripts/merge_firmware_sources.py'
 
 permissions:
   contents: write
