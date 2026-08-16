@@ -1,36 +1,36 @@
 # Transsion App Updater
 
-Backend + scanner foundation for tracking TECNO and Infinix system-app versions without mixing this project into the OTA prober.
+Backend and scanner for tracking TECNO and Infinix system-app versions. This repository is intentionally separate from `Ptnaman/transsion-ota-prober`.
 
 ## Goal
 
-Build a catalog of system-app releases from trusted firmware, then let an Android client compare the phone's installed package/version/signing certificate with the catalog before offering an update.
+Build a trusted catalog of Transsion system-app releases from OEM firmware, then let an Android client compare its installed package/version/signing certificate with the catalog before offering an update.
 
 ## Architecture
 
 ```text
-Ptnaman/transsion-ota-prober (read-only discovery)
+Ptnaman/transsion-ota-prober (read-only dry-run discovery)
                   |
                   v
       data/firmware_sources.json
                   |
                   v
+       controlled ingestion queue
+                  |
+                  v
    firmware/ingest_firmware.py
-   (ZIP/TAR -> payload.bin -> partition images)
+  (HTTP OTA -> selected payload partitions)
                   |
                   v
       system/product/system_ext/vendor
           (EROFS or ext filesystem)
                   |
                   v
+       firmware-work/apks/ only
+                  |
+                  v
           scanner/scan_apks.py
      (aapt2 + apksigner + SHA-256)
-                  |
-                  v
-            scan-result.json
-                  |
-                  v
-         scripts/merge_catalog.py
                   |
                   v
            data/catalog.json
@@ -42,66 +42,102 @@ Ptnaman/transsion-ota-prober (read-only discovery)
        Android updater client (next)
 ```
 
-## What is automatic now?
+## Automatic firmware discovery
 
-### Firmware URL discovery
+`.github/workflows/discover-firmware.yml` runs every 6 hours. It temporarily clones `Ptnaman/transsion-ota-prober`, runs it with `--dry-run --skip-telegram`, parses only TECNO/Infinix results, and merges firmware metadata into `data/firmware_sources.json`.
 
-`.github/workflows/discover-firmware.yml` runs every 6 hours. It temporarily clones `Ptnaman/transsion-ota-prober`, runs it in `--dry-run --skip-telegram` mode, extracts TECNO/Infinix device/build/region/URL information from its output, and merges it into `data/firmware_sources.json`.
+The old OTA-prober repository is read-only from this project. Its configs, processed state and Telegram setup are not changed.
 
-The OTA prober repository is read-only from this project. This workflow does not modify its configs, processed state, or Telegram setup.
+Discovery records include:
 
-### Firmware ingestion
+- brand
+- device
+- normalized codename
+- region
+- OTA/build title
+- source fingerprint
+- OTA size in MB
+- direct source URL
 
-`.github/workflows/ingest-firmware.yml` can be started manually with a direct public firmware/OTA URL plus device metadata. It:
+## Low-disk streamed firmware ingestion
 
-1. downloads and safely unpacks ZIP/TAR firmware,
-2. finds `payload.bin`,
-3. extracts app-bearing partitions with `payload-dumper-go`,
-4. converts Android sparse images with `simg2img`,
-5. extracts EROFS or ext2/ext3/ext4 filesystem images,
-6. scans every APK with `aapt2` and `apksigner`,
-7. merges new releases into `data/catalog.json`,
-8. commits only catalog metadata (never firmware/APK binaries),
-9. stores scan reports as short-lived GitHub Actions artifacts.
+For modern payload-based HTTP OTA packages, `firmware/ingest_firmware.py` first asks `payload-dumper-go` to inspect the remote OTA directly. When supported, it does **not** save the complete multi-gigabyte OTA ZIP.
 
-Large firmware downloads are deliberately not auto-started for every discovery yet. A single modern OTA plus extracted partitions can consume substantial GitHub-hosted runner disk and bandwidth. First we validate real TECNO/Infinix packages, then the queue can safely auto-ingest a controlled number per run.
+Instead it processes app-bearing partitions one at a time:
 
-## Why this split?
+1. inspect remote payload partitions,
+2. select `system`, `system_ext`, `product`, `vendor`, `odm`, `my_product` and `product_services` when present,
+3. stream/extract one selected partition,
+4. convert Android sparse images when required,
+5. extract EROFS or ext2/ext3/ext4 filesystems,
+6. copy only APKs into `firmware-work/apks/`,
+7. delete the large temporary partition image/filesystem,
+8. continue with the next partition.
 
-- `firmware/`: turns firmware/OTA containers into APK-bearing filesystem trees.
-- `scanner/`: extracts package name, version name, version code, min/target SDK, APK hash and signer certificate digest.
-- `data/firmware_sources.json`: discovered firmware source metadata/URLs.
-- `data/catalog.json`: small app-release metadata catalog only. Do **not** commit proprietary APK binaries.
-- `app/`: read-only API for app/update lookup.
-- Android client can later query this API and use Android `PackageInstaller` for user-approved installs.
+For firmware formats that cannot be read as a remote payload, a download-and-unpack fallback remains available.
 
-## Data sources
+## APK scanning and compatibility data
 
-Preferred order:
+`scanner/scan_apks.py` uses Android SDK `aapt2` and `apksigner` and records:
 
-1. Original TECNO/Infinix firmware packages you are legally allowed to analyze.
-2. Official Play Store releases for Transsion apps (metadata/link only unless redistribution is permitted).
-3. Manually verified OEM APK samples.
-4. Community submissions only after hash/signing checks.
+- package name
+- version name
+- version code
+- min SDK / target SDK
+- APK SHA-256
+- signer certificate SHA-256
+- source brand/device/codename/region/build
 
-Do not blindly trust a higher version number. The package name and signing certificate lineage must be compatible with the installed app.
+The updater must not trust only a higher version number. Package identity and signing compatibility are mandatory checks.
 
-## Local firmware ingestion
+## Controlled automatic ingestion queue
 
-Host tools used by the ingestion pipeline:
+`scripts/ingestion_queue.py` and `data/ingestion_state.json` prevent the same firmware from being processed repeatedly.
 
-- `payload-dumper` (`payload-dumper-go` v0.1.6 in GitHub Actions)
+Current queue policy:
+
+- prefers India (`IN`) sources, then global/other regions,
+- ignores packages below 1000 MB for automatic ingestion because these are commonly incremental/delta OTAs,
+- retries a failed firmware up to 3 times,
+- permanently skips a firmware after successful ingestion unless its stable firmware identity changes,
+- uses brand + codename + region + source build as the stable identity, so refreshed CDN URLs do not create duplicate work.
+
+`.github/workflows/auto-ingest.yml` implements the full queue -> extract -> scan -> merge -> state flow. Its recurring schedule is intentionally kept disabled until the real streamed-firmware smoke test is green.
+
+## GitHub Actions
+
+- `test.yml` — Python unit tests.
+- `discover-firmware.yml` — 6-hour read-only OTA discovery.
+- `smoke-stream.yml` — real streamed partition validation against a known TECNO/Infinix full OTA.
+- `ingest-firmware.yml` — manual full firmware ingestion with explicit device metadata.
+- `auto-ingest.yml` — controlled queue worker; schedule enabled only after smoke validation.
+
+All workflows that write repository data use a shared concurrency lock to avoid competing pushes to `main`.
+
+## Data files
+
+- `data/firmware_sources.json` — discovered firmware sources and metadata.
+- `data/ingestion_state.json` — success/failure/attempt state for automatic ingestion.
+- `data/catalog.json` — system-app release metadata.
+
+Firmware ZIPs, partition images and APK binaries are ignored by Git and are not committed to this repository.
+
+## Manual firmware ingestion
+
+Host tools:
+
+- `payload-dumper` (`payload-dumper-go` v0.1.6)
 - `simg2img`
 - `fsck.erofs`
 - `debugfs`
-- Android SDK Build Tools (`aapt2` and `apksigner`)
+- Android SDK Build Tools (`aapt2`, `apksigner`)
 
 ```bash
-python firmware/ingest_firmware.py ./firmware.zip \
+python firmware/ingest_firmware.py "https://example.com/full-ota.zip" \
   --workdir firmware-work \
   --output ingest-result.json
 
-python scanner/scan_apks.py firmware-work \
+python scanner/scan_apks.py firmware-work/apks \
   --brand TECNO \
   --device "POVA Curve 5G" \
   --codename LJ8k \
@@ -124,9 +160,9 @@ Endpoints:
 - `GET /health`
 - `GET /v1/apps`
 - `GET /v1/apps/{package_name}`
-- `POST /v1/check` — compare installed package/version/signer against catalog
+- `POST /v1/check`
 
-Example check body:
+Example update check:
 
 ```json
 {
@@ -136,41 +172,43 @@ Example check body:
 }
 ```
 
-## Compatibility rules
+## Update compatibility rules
 
 An update is offered only when:
 
-- same package name,
-- catalog version code is greater than installed version code,
-- signer SHA-256 matches the installed signer (strict mode),
-- optional device/brand/region constraints match when present.
+- package name matches,
+- catalog `versionCode` is greater than the installed version,
+- signer SHA-256 matches in strict mode,
+- optional brand/device/region constraints match when present.
 
-This project deliberately starts strict. A future Android client can support certificate rotation using Android's signing lineage APIs.
+A future Android client can add Android signing-certificate lineage support for legitimate certificate rotation.
 
-## Current firmware limitations
+## Current limitations
 
-- Full OTA `payload.bin` is supported when its app-bearing partition images can be reconstructed without a base image.
+- Full payload-based OTAs are the preferred automated source.
 - Incremental/delta payloads that require old partition images are not automatically reconstructed yet.
-- Direct `super.img` extraction is not implemented yet; payload-based packages are the preferred path for now.
+- Direct `super.img` extraction is not implemented yet.
 - Split APK/APKS packages are not cataloged yet.
+- APK binary hosting/delivery is intentionally separate from this public metadata repository.
 
 ## Roadmap
 
 - [x] APK metadata scanner
 - [x] catalog merge tool
 - [x] update-check API
-- [x] GitHub Actions scanner validation
-- [x] firmware ZIP/TAR extractor
-- [x] payload.bin app-partition extraction
+- [x] test workflow
+- [x] scheduled TECNO/Infinix OTA URL discovery
+- [x] firmware ZIP/TAR fallback extractor
+- [x] remote payload partition streaming
 - [x] Android sparse image conversion
 - [x] EROFS + ext filesystem extraction
-- [x] scheduled TECNO/Infinix OTA URL discovery (old prober stays read-only)
-- [ ] validate first real firmware end-to-end
-- [ ] controlled automatic firmware ingestion queue
+- [x] controlled automatic ingestion queue/state
+- [ ] pass first real streamed firmware partition smoke test
+- [ ] enable recurring automatic ingestion worker
 - [ ] incremental OTA/base-image reconstruction
-- [ ] direct super.img adapter
+- [ ] direct `super.img` adapter
 - [ ] official Play metadata adapter
 - [ ] Android Kotlin updater client
-- [ ] split-APK/APKS support
-- [ ] trusted community submission pipeline
+- [ ] split APK/APKS support
+- [ ] trusted APK binary delivery/storage
 - [ ] release notifications
