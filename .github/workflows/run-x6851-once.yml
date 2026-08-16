@@ -1,0 +1,94 @@
+name: Extract X6851 XOS 16.3 apps
+
+on:
+  push:
+    paths:
+      - '.github/workflows/run-x6851-once.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  extract-x6851:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+
+      - name: Install firmware tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y android-sdk-libsparse-utils e2fsprogs erofs-utils liblzma-dev
+          go install github.com/xishang0128/payload-dumper-go/cmd/payload-dumper@v0.1.6
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          if [ -z "$SDK_ROOT" ]; then
+            echo "Android SDK root is not available on this runner" >&2
+            exit 1
+          fi
+          BUILD_TOOLS="$(find "$SDK_ROOT/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+          if [ -z "$BUILD_TOOLS" ]; then
+            echo "Android SDK build-tools not found" >&2
+            exit 1
+          fi
+          echo "$BUILD_TOOLS" >> "$GITHUB_PATH"
+
+      - name: Stream and extract X6851 XOS 16.3 firmware apps
+        id: ingest
+        shell: bash
+        run: |
+          set -euo pipefail
+          python firmware/ingest_firmware.py \
+            'https://android.googleapis.com/packages/ota-api/package/e2e0ffe348757c6911a63f090431c25ac198b320.zip' \
+            --workdir firmware-work \
+            --output ingest-result.json
+
+      - name: Scan APK metadata
+        id: scan
+        if: steps.ingest.outcome == 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scanner/scan_apks.py firmware-work/apks \
+            --brand 'Infinix' \
+            --device 'Infinix NOTE 40 Pro 5G' \
+            --codename 'X6851' \
+            --region 'OP' \
+            --build 'X6851-16.3.0.130SP08(OP003PF001AZ)' \
+            --output scan-result.json
+
+      - name: Upload X6851 extracted APKs
+        if: always() && steps.ingest.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: x6851-xos16.3-apks-${{ github.run_id }}
+          if-no-files-found: error
+          retention-days: 7
+          path: firmware-work/apks/
+
+      - name: Upload X6851 reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: x6851-xos16.3-scan-${{ github.run_id }}
+          if-no-files-found: ignore
+          retention-days: 14
+          path: |
+            ingest-result.json
+            scan-result.json
