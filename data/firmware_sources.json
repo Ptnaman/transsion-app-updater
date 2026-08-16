@@ -1,4 +1,572 @@
 {
   "schemaVersion": 1,
-  "sources": []
+  "sources": [
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6871",
+      "device": "Infinix GT 20 Pro",
+      "region": "IN",
+      "sourceBuild": "Tcard_X6871-15.0.3.126-IN001PF001AZ",
+      "sourceFingerprint": "Infinix/X6871-IN/Infinix-X6871:15/AP3A.240905.015.A2/180003:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/d188a305f5f1d24bf1f03e5bd407bd4ffeced0b2.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6871",
+      "device": "Infinix GT 20 Pro",
+      "region": "OP",
+      "sourceBuild": "Tcard_X6871-15.0.3.126-OP001PF001AZ",
+      "sourceFingerprint": "Infinix/X6871-OP/Infinix-X6871:15/AP3A.240905.015.A2/180003:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/3746a289a46815c7cd869c3b0d3f10b04dd40be5.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6871",
+      "device": "Infinix GT 20 Pro",
+      "region": "RU",
+      "sourceBuild": "Tcard_X6871-15.0.3.126SP01-RU001PF001AZ",
+      "sourceFingerprint": "Infinix/X6871-RU/Infinix-X6871:15/AP3A.240905.015.A2/180003:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/55ce8c2f87f2509ba8684c1875c4aa2b5ba50b65.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6876",
+      "device": "Infinix GT 30",
+      "region": "IN",
+      "sourceBuild": "Tcard_X6876-16.2.0.135SP13-IN007PF001AZ_a15",
+      "sourceFingerprint": "Infinix/X6876-IN/Infinix-X6876:16/BP2A.250605.031.A3/201500013:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/ccf7676c9ed5be77d033d53f659aea3eb24d2e37.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6876",
+      "device": "Infinix GT 30",
+      "region": "OP",
+      "sourceBuild": "Tcard_X6876-16.2.0.135SP13-OP007PF001AZ_a15",
+      "sourceFingerprint": "Infinix/X6876-OP/Infinix-X6876:16/BP2A.250605.031.A3/201500013:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/d75a52cb64bfe095dd6ce3160f9523c5f93a4dae.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6876",
+      "device": "Infinix GT 30",
+      "region": "RU",
+      "sourceBuild": "Tcard_X6876-16.2.0.135SP19-RU008PF001AZ_a15",
+      "sourceFingerprint": "Infinix/X6876-RU/Infinix-X6876:16/BP2A.250605.031.A3/201500013:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/90adc2d81711c295d6d98d2bd95789d6957219f6.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6873",
+      "device": "Infinix GT 30 Pro",
+      "region": "IN",
+      "sourceBuild": "Tcard_X6873-16.2.0.135SP15-IN006PF001AZ_a15",
+      "sourceFingerprint": "Infinix/X6873-IN/Infinix-X6873:16/BP2A.250605.031.A3/201500011:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/8d3be22c312ab2a6bd315d71c8d7ed0b00cf6709.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6873",
+      "device": "Infinix GT 30 Pro",
+      "region": "OP",
+      "sourceBuild": "Tcard_X6873-16.2.0.135SP15-OP006PF001AZ_a15",
+      "sourceFingerprint": "Infinix/X6873-OP/Infinix-X6873:16/BP2A.250605.031.A3/201500011:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/7197b72b3cd36b553f84cbccd775ff6998b6177f.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6873",
+      "device": "Infinix GT 30 Pro",
+      "region": "RU",
+      "sourceBuild": "Tcard_X6873-16.2.0.135SP19-RU007PF001AZ_a15",
+      "sourceFingerprint": "Infinix/X6873-RU/Infinix-X6873:16/BP2A.250605.031.A3/201500011:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/ee549985fefd3fe164cd94f38074ff36b0768107.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6873",
+      "device": "Infinix GT 30 Pro",
+      "region": "TR",
+      "sourceBuild": "Tcard_X6873-16.2.0.135SP15-TR006PF001AZ_a15",
+      "sourceFingerprint": "Infinix/X6873-TR/Infinix-X6873:16/BP2A.250605.031.A3/201500011:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/214e8c015face5dff656254d0ebc612a3d734188.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6880",
+      "device": "Infinix HOT 50 Pro+",
+      "region": "OP",
+      "sourceBuild": "Tcard_X6880-15.1.1.108-OP001PF001AZ",
+      "sourceFingerprint": "Infinix/X6880-OP/Infinix-X6880:15/AP3A.240905.015.A2/185001:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/3df8f9c277a550705bba02bd36db22630abafdda.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6885",
+      "device": "Infinix HOT 60 Pro",
+      "region": "OP",
+      "sourceBuild": "X6885-16.3.0.140SP11-OP005PF001AZ-16.3.0.140SP17-OP007PF001AZ_20260805211848",
+      "sourceFingerprint": "Infinix/X6885-OP/Infinix-X6885:16/BP2A.250605.031.A3/301400011:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/167ff40deb3620cf78c05993d79dee2d76172f81.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6853",
+      "device": "Infinix NOTE 40 4G",
+      "region": "OP",
+      "sourceBuild": "Tcard_X6853-15.0.3.127-OP001PF001AZ",
+      "sourceFingerprint": "Infinix/X6853-OP/Infinix-X6853:15/AP3A.240905.015.A2/180003:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/7f3daa1192c83b8cba4e4019af4d38d4bf70d35b.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6852",
+      "device": "Infinix NOTE 40 5G",
+      "region": "EU",
+      "sourceBuild": "Tcard_X6852-15.0.3.127-EU001PF001AZ",
+      "sourceFingerprint": "Infinix/X6852-EU/Infinix-X6852:15/AP3A.240905.015.A2/170031:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/a8611fcf8fc24e2fab598ef21896d3847dcc4c01.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6852",
+      "device": "Infinix NOTE 40 5G",
+      "region": "IN",
+      "sourceBuild": "Tcard_X6852-15.0.3.123SP01-IN001PF001AZ",
+      "sourceFingerprint": "Infinix/X6852-IN/Infinix-X6852:15/AP3A.240905.015.A2/170032:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/b813db968a84bebddae1ca8bf71d967f73429a34.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6852",
+      "device": "Infinix NOTE 40 5G",
+      "region": "OP",
+      "sourceBuild": "Tcard_X6852-15.0.3.109SP09-OP001PF001AZ",
+      "sourceFingerprint": "Infinix/X6852-OP/Infinix-X6852:16/BP2A.250605.031.A3/301300004:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/bb874810656ab780de64da121f1d23ea38c80bce.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6850",
+      "device": "Infinix NOTE 40 Pro 4G",
+      "region": "OP",
+      "sourceBuild": "Tcard_X6850-15.0.3.106SP03-OP001PF001AZ",
+      "sourceFingerprint": "Infinix/X6850-OP/Infinix-X6850:15/AP3A.240905.015.A2/180004:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/9b41c5235e89e94a1f4f899150d3378cb7301e7a.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6851",
+      "device": "Infinix NOTE 40 Pro 5G",
+      "region": "OP",
+      "sourceBuild": "Tcard_X6851-15.0.3.116SP06-OP001PF001AZ",
+      "sourceFingerprint": "Infinix/X6851-OP/Infinix-X6851:16/BP2A.250605.031.A3/301300006:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/4b56c6bdbf8e60a689134fc4dca80b2fb6a182ee.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6851B",
+      "device": "Infinix NOTE 40 Pro+ 5G",
+      "region": "OP",
+      "sourceBuild": "Tcard_X6851B-15.0.3.127SP03-OP001PF001AZ",
+      "sourceFingerprint": "Infinix/X6851B-OP/Infinix-X6851B:16/BP2A.250605.031.A3/301300006:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/a6bf80ab83f633131550392f4c11991a1a359af5.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6850B",
+      "device": "Infinix NOTE 40S",
+      "region": "OP",
+      "sourceBuild": "Tcard_X6850B-15.0.3.106SP03-OP001PF001AZ",
+      "sourceFingerprint": "Infinix/X6850B-OP/Infinix-X6850B:15/AP3A.240905.015.A2/180004:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/7a639eae3e0009b0ddc81b44b87b56ec467214c1.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6856",
+      "device": "Infinix NOTE 50 Pro+ 5G",
+      "region": "RU",
+      "sourceBuild": "Tcard_X6856-16.2.0.135SP19-RU005PF001AZ_a15",
+      "sourceFingerprint": "Infinix/X6856-RU/Infinix-X6856:16/BP2A.250605.031.A3/201500012:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/06def199359c9e0992aa7aebaefaa730b76ab93a.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6856",
+      "device": "Infinix NOTE 50 Pro+ 5G",
+      "region": "TR",
+      "sourceBuild": "Tcard_X6856-16.2.0.135SP19-TR005PF001AZ_a15",
+      "sourceFingerprint": "Infinix/X6856-TR/Infinix-X6856:16/BP2A.250605.031.A3/201500012:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/a457eb222dfb8a79c2ab4b5ae8a87dc05cd69604.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6857",
+      "device": "Infinix NOTE 50X 5G",
+      "region": "OP",
+      "sourceBuild": "Tcard_X6857-16.2.0.140SP10-OP010PF001AZ_a15",
+      "sourceFingerprint": "Infinix/X6857-OP/Infinix-X6857:16/BP2A.250605.031.A3/201500013:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/9ccfbe36e7adfb51114d845a0a9dbc7a51356569.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6870",
+      "device": "Infinix NOTE 50s 5G",
+      "region": "IN",
+      "sourceBuild": "Tcard_X6870-16.2.0.135SP22-IN007PF001H2_a15",
+      "sourceFingerprint": "Infinix/X6870-IN/Infinix-X6870:16/BP2A.250605.031.A3/201500023:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/d6991260965ee43a12a087f7bed8716f0ca86123.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6870",
+      "device": "Infinix NOTE 50s 5G",
+      "region": "OP",
+      "sourceBuild": "Tcard_X6870-16.2.0.135SP17-OP005PF001AZ_a15",
+      "sourceFingerprint": "Infinix/X6870-OP/Infinix-X6870:16/BP2A.250605.031.A3/201500023:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/59edf1f5b1998820f9ca7e2e34f36c971adb8d7d.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X1201",
+      "device": "Infinix XPAD 20 Pro",
+      "region": "OP",
+      "sourceBuild": "X1201-M1201ABCDEFGHI-V-OP-260505V1370-to-X1201-M1201ABCDEFGHI-V-OP-260625V1482",
+      "sourceFingerprint": "Infinix/X1201-OP/Infinix-X1201:15/AP3A.240905.015.A2/260505V1370:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/757d6ea4dba9fb1d9a59324c5687af895098c51a.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X1301",
+      "device": "Infinix XPAD GT (SD888)",
+      "region": "OP",
+      "sourceBuild": "X1301-TC843A-U-OP-250416V20-to-X1301-TC843A-U-OP-250430V38",
+      "sourceFingerprint": "Infinix/X1301-OP/Infinix-X1301:14/UKQ1.240826.001/251218V74:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/4d1684250ed38d16fb9466c3255e3a7936e5c800.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6731B",
+      "device": "Infinix ZERO 30 4G",
+      "region": "OP",
+      "sourceBuild": "Tcard_X6731B-H896ABC-U-OP-240827V260",
+      "sourceFingerprint": "Infinix/X6731B-OP/Infinix-X6731B:14/UP1A.231005.007/250808V510:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/e454b0b31e2d42828c3ac6218b0f9b8750e5e229.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6731",
+      "device": "Infinix ZERO 30 5G",
+      "region": "GL",
+      "sourceBuild": "Tcard_X6731-H935AB-U-GL-240829V449",
+      "sourceFingerprint": "Infinix/X6731-GL/Infinix-X6731:14/UP1A.231005.007/250623V689:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/e492390e9d4aef70d0c2d7fc0e59b389daf9d360.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6860",
+      "device": "Infinix ZERO 40 4G",
+      "region": "OP",
+      "sourceBuild": "Tcard_X6860-15.1.2.109SP02-OP001PF001AZ",
+      "sourceFingerprint": "Infinix/X6860-OP/Infinix-X6860:15/AP3A.240905.015.A2/180002:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/819726f83ea457ab253e14539a38cd7c4bb783ef.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6861",
+      "device": "Infinix ZERO 40 5G",
+      "region": "OP",
+      "sourceBuild": "Tcard_X6861-15.1.2.109SP02-OP001PF001AZ",
+      "sourceFingerprint": "Infinix/X6861-OP/Infinix-X6861:15/AP3A.240905.015.A2/180005:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/cdf082d2dbb8f217444924fc87e80397f3c5af05.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6962",
+      "device": "Infinix ZERO Flip",
+      "region": "IN",
+      "sourceBuild": "Tcard_X6962-15.1.3.124SP03-IN001PF001AZ",
+      "sourceFingerprint": "Infinix/X6962-IN/Infinix-X6962:15/AP3A.240905.015.A2/135003:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/558e1d2af29b537e2c9261caba22de6f3c9008ef.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6962",
+      "device": "Infinix ZERO Flip",
+      "region": "OP",
+      "sourceBuild": "Tcard_X6962-15.1.3.124SP03-OP001PF001AZ",
+      "sourceFingerprint": "Infinix/X6962-OP/Infinix-X6962:15/AP3A.240905.015.A2/135003:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/0bc279103a581eaaff1f72de0c45e26f74907e31.zip"
+    },
+    {
+      "brand": "Infinix",
+      "codename": "Infinix-X6962",
+      "device": "Infinix ZERO Flip",
+      "region": "RU",
+      "sourceBuild": "Tcard_X6962-15.1.3.124SP03-RU001PF001AZ",
+      "sourceFingerprint": "Infinix/X6962-RU/Infinix-X6962:15/AP3A.240905.015.A2/135003:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/548227c16f2f81ebf39b7dffda1ec3baa78558d8.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-CL6",
+      "device": "TECNO CAMON 30 4G",
+      "region": "OP",
+      "sourceBuild": "Tcard_CL6-15.0.3.127-OP001PF001AZ",
+      "sourceFingerprint": "TECNO/CL6-OP/TECNO-CL6:15/AP3A.240905.015.A2/180003:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/77ea843d7653873560beea239ea036c6a1f32055.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-CL7",
+      "device": "TECNO CAMON 30 5G",
+      "region": "OP",
+      "sourceBuild": "Tcard_CL7-15.0.3.109SP05-OP001PF001AZ",
+      "sourceFingerprint": "TECNO/CL7-OP/TECNO-CL7:16/BP2A.250605.031.A3/301300008:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/9eaf742d882bb2bd716edc3795cedd0114ac1e78.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-CL9",
+      "device": "TECNO CAMON 30 Premier 5G",
+      "region": "OP",
+      "sourceBuild": "Tcard_CL9-15.0.3.127SP01-OP001PF001AZ",
+      "sourceFingerprint": "TECNO/CL9-OP/TECNO-CL9:15/AP3A.240905.015.A2/185003:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/7855ecbdee0a2b737e10668a7e11384c4c5f7fba.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-CL8",
+      "device": "TECNO CAMON 30 Pro 5G",
+      "region": "OP",
+      "sourceBuild": "Tcard_CL8-H962IN-V-OP-241111V15324",
+      "sourceFingerprint": "TECNO/CL8-OP/TECNO-CL8:15/AP3A.240905.015.A2/185003:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/96eb8848811e1323fe694bff58e63bd934b7295a.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-CLA5",
+      "device": "TECNO CAMON 30S",
+      "region": "OP",
+      "sourceBuild": "Tcard_CLA5-15.0.3.127SP03-OP001PF001AZ",
+      "sourceFingerprint": "TECNO/CLA5-OP/TECNO-CLA5:16/BP2A.250605.031.A3/301400007:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/784c0e89c397316e5d7d434625b58454ba2e6a07.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-CLA6",
+      "device": "TECNO CAMON 30S Pro",
+      "region": "OP",
+      "sourceBuild": "Tcard_CLA6-15.0.3.127SP01-OP001PF001AZ",
+      "sourceFingerprint": "TECNO/CLA6-OP/TECNO-CLA6:16/BP2A.250605.031.A3/301400008:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/1b9142757a145db123b1c870ad75441267edfcb8.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-CM5",
+      "device": "TECNO CAMON 40 4G",
+      "region": "RU",
+      "sourceBuild": "Tcard_CM5-16.2.0.135SP22-RU005PF001AZ_a15",
+      "sourceFingerprint": "TECNO/CM5-RU/TECNO-CM5:16/BP2A.250605.031.A3/201500015:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/6b11733fd85556cc4e9809e42e179a815f3fac88.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-CM8",
+      "device": "TECNO CAMON 40 Premier 5G",
+      "region": "OP",
+      "sourceBuild": "Tcard_CM8-16.2.0.145SP01-OP002PF001AZ_a15",
+      "sourceFingerprint": "TECNO/CM8-OP/TECNO-CM8:16/BP2A.250605.031.A3/201500015:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/d013e19a8b483388166d88a636d7e6bdeebeef69.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-CM7",
+      "device": "TECNO CAMON 40 Pro 5G",
+      "region": "OP",
+      "sourceBuild": "Tcard_CM7-16.2.0.135SP15-OP006PF001AZ_a15",
+      "sourceFingerprint": "TECNO/CM7-OP/TECNO-CM7:16/BP2A.250605.031.A3/201500011:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/8c1c2433e87e8e49eb58f4f8eaa56ac13215f935.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-T1102",
+      "device": "TECNO MEGAPAD SE (SD685)",
+      "region": "OP",
+      "sourceBuild": "T1102-T726AABCDEF-V-OP-251231V152-to-T1102-T726AABCDEF-V-OP-260123V156",
+      "sourceFingerprint": "TECNO/T1102-OP/TECNO-T1102:15/AQ3A.250226.002/251231V152:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/bca48b57086c0183b24c8f25a0a3da3d16d0bc52.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-T1201",
+      "device": "TECNO MegaPad Pro",
+      "region": "OP",
+      "sourceBuild": "T1201-MX760ABCD-V-OP-260120V1317-to-T1201-MX760ABCD-V-OP-260529V1359",
+      "sourceFingerprint": "TECNO/T1201-OP/TECNO-T1201:15/AP3A.240905.015.A2/260120V1317:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/55a1e02fba1f78e006ccd00dedd7001824507aff.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-AD11",
+      "device": "TECNO PHANTOM V Flip 5G",
+      "region": "GL",
+      "sourceBuild": "Tcard_AD11-15.1.3.112SP09-GL001PF001AZ",
+      "sourceFingerprint": "TECNO/AD11-GL/TECNO-AD11:15/AP3A.240905.015.A2/135021:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/24c8ef45971b76f18ce88e27bfd1575fde5fa00e.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-AE11",
+      "device": "TECNO PHANTOM V Flip2 5G",
+      "region": "IN",
+      "sourceBuild": "Tcard_AE11-15.1.3.112SP12-IN001PF001AZ",
+      "sourceFingerprint": "TECNO/AE11-IN/TECNO-AE11:15/AP3A.240905.015.A2/135003:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/6db68aaf35c5e3e0431f3e7d70ecdedaaa0fabd3.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-AE11",
+      "device": "TECNO PHANTOM V Flip2 5G",
+      "region": "OP",
+      "sourceBuild": "Tcard_AE11-15.1.3.112SP12-OP001PF001AZ",
+      "sourceFingerprint": "TECNO/AE11-OP/TECNO-AE11:15/AP3A.240905.015.A2/135001:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/1c58ed919ad7b6a179c7f8d82fd99cf381d303da.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-AE11",
+      "device": "TECNO PHANTOM V Flip2 5G",
+      "region": "RU",
+      "sourceBuild": "Tcard_AE11-15.1.3.112SP12-RU001PF001AZ",
+      "sourceFingerprint": "TECNO/AE11-RU/TECNO-AE11:15/AP3A.240905.015.A2/135003:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/d89a81ac770cfe87530e1b7ce5b16da14030e143.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-AE11",
+      "device": "TECNO PHANTOM V Flip2 5G",
+      "region": "TR",
+      "sourceBuild": "Tcard_AE11-15.1.3.112SP12-TR001PF001AZ",
+      "sourceFingerprint": "TECNO/AE11-TR/TECNO-AE11:15/AP3A.240905.015.A2/135003:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/8bfa98dc41e5e4ce84925e85a84d8f6ac6069f26.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-AD10",
+      "device": "TECNO PHANTOM V Fold 5G",
+      "region": "GL",
+      "sourceBuild": "Tcard_AD10-15.1.3.115SP05-GL001PF001AZ",
+      "sourceFingerprint": "TECNO/AD10-GL/TECNO-AD10:15/AP3A.240905.015.A2/135017:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/3fe4121d8516e0e312854d80413be558fe389398.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-AD10",
+      "device": "TECNO PHANTOM V Fold 5G",
+      "region": "RU",
+      "sourceBuild": "Tcard_AD10-15.1.3.115SP05-RU001PF001AZ",
+      "sourceFingerprint": "TECNO/AD10-RU/TECNO-AD10:15/AP3A.240905.015.A2/135020:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/8afc1d6377c92dca168cb4da5ecd61c7dd7644b6.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-AD10",
+      "device": "TECNO PHANTOM V Fold 5G",
+      "region": "TR",
+      "sourceBuild": "Tcard_AD10-15.1.3.115SP05-TR001PF001AZ",
+      "sourceFingerprint": "TECNO/AD10-TR/TECNO-AD10:15/AP3A.240905.015.A2/135021:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/07f019ae4b8014d71e1bc454f4c45424cb964e2c.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-AE10",
+      "device": "TECNO PHANTOM V Fold2 5G",
+      "region": "IN",
+      "sourceBuild": "Tcard_AE10-15.1.3.115SP05-IN001PF001AZ",
+      "sourceFingerprint": "TECNO/AE10-IN/TECNO-AE10:15/AP3A.240905.015.A2/135003:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/7c416536e6988ec6b6ab05cf888b24b8293b3cd0.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-AE10",
+      "device": "TECNO PHANTOM V Fold2 5G",
+      "region": "OP",
+      "sourceBuild": "Tcard_AE10-15.1.3.115SP05-OP001PF001AZ",
+      "sourceFingerprint": "TECNO/AE10-OP/TECNO-AE10:15/AP3A.240905.015.A2/135001:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/ad71a9676b510bdd2aa1ba54f0a1e3c834745737.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-AE10",
+      "device": "TECNO PHANTOM V Fold2 5G",
+      "region": "RU",
+      "sourceBuild": "Tcard_AE10-15.1.3.115SP05-RU001PF001AZ",
+      "sourceFingerprint": "TECNO/AE10-RU/TECNO-AE10:15/AP3A.240905.015.A2/135003:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/743f22a9e124b9d6de63cf7ce548329f19f6ca56.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-AE10",
+      "device": "TECNO PHANTOM V Fold2 5G",
+      "region": "TR",
+      "sourceBuild": "Tcard_AE10-15.1.3.115SP05-TR001PF001AZ",
+      "sourceFingerprint": "TECNO/AE10-TR/TECNO-AE10:15/AP3A.240905.015.A2/135003:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/3f761458f2b8457cf4643b07fe19c94b6905e47b.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-LI7",
+      "device": "TECNO POVA 6",
+      "region": "OP",
+      "sourceBuild": "Tcard_LI7-15.1.1.108SP06-OP001PF001AZ",
+      "sourceFingerprint": "TECNO/LI7-OP/TECNO-LI7:15/AP3A.240905.015.A2/170003:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/30a28256a16142d3de27bf749743b472f0a8ed04.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-LI6",
+      "device": "TECNO POVA 6 Neo",
+      "region": "OP",
+      "sourceBuild": "Tcard_LI6-15.1.1.108SP05-OP001PF001AZ",
+      "sourceFingerprint": "TECNO/LI6-OP/TECNO-LI6:15/AP3A.240905.015.A2/170004:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/d167ddaebf04643160adb95556f23bc362df4985.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-LI9",
+      "device": "TECNO POVA 6 Pro",
+      "region": "OP",
+      "sourceBuild": "Tcard_LI9-15.1.1.109SP06-OP001PF001AZ",
+      "sourceFingerprint": "TECNO/LI9-OP/TECNO-LI9:15/AP3A.240905.015.A2/170005:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/f107f8363f5ff971009d050e1e8fa5b393fbcfcc.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-LJ8",
+      "device": "TECNO POVA 7 Pro 5G",
+      "region": "RU",
+      "sourceBuild": "Tcard_LJ8-16.3.0.145-RU001PF001AZ_a15",
+      "sourceFingerprint": "TECNO/LJ8-RU/TECNO-LJ8:15/AP3A.240905.015.A2/180001:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/edaebe7f053a026fe634f9b0f3deecbdec207314.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-LK7",
+      "device": "TECNO POVA 8 Pro 5G",
+      "region": "OP",
+      "sourceBuild": "LK7-16.3.0.135SP07-OP006PF001AZ-16.3.0.135SP14-OP012PF001AZ_20260806202243",
+      "sourceFingerprint": "TECNO/LK7-OP/TECNO-LK7:16/BP2A.250605.031.A3/301350020:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/4fe8bfbe059ac0e17495d8dd98a0070f607e7534.zip"
+    },
+    {
+      "brand": "TECNO",
+      "codename": "TECNO-LJ8k",
+      "device": "TECNO POVA Curve 5G",
+      "region": "IN",
+      "sourceBuild": "Tcard_LJ8k-16.3.0.145-IN001PF001AZ_a15",
+      "sourceFingerprint": "TECNO/LJ8k-IN/TECNO-LJ8k:15/AP3A.240905.015.A2/180003:user/release-keys",
+      "url": "https://android.googleapis.com/packages/ota-api/package/5a0dd90fbe5e8beeceb25993e3561b84b39beea8.zip"
+    }
+  ]
 }
