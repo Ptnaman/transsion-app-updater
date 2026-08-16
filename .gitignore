@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+scan-result.json
+input-apks/
+*.apk
+*.apks
+*.xapk
+*.zip
+*.bin
+*.img
+*.new.dat*
+*.br
