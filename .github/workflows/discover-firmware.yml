@@ -16,7 +16,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: firmware-source-discovery
+  group: transsion-data-writes
   cancel-in-progress: false
 
 jobs:
