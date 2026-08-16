@@ -68,16 +68,31 @@ def selection_key(item: dict) -> tuple:
     )
 
 
-def select_next(sources: dict, state: dict, *, max_attempts: int = MAX_ATTEMPTS) -> dict | None:
-    eligible = [
-        item
-        for item in sources.get("sources", [])
-        if is_eligible(item, state, max_attempts=max_attempts)
-    ]
+def select_next(
+    sources: dict,
+    state: dict,
+    *,
+    max_attempts: int = MAX_ATTEMPTS,
+    codename: str | None = None,
+    region: str | None = None,
+) -> dict | None:
+    wanted_codename = (codename or "").strip().upper()
+    wanted_region = (region or "").strip().upper()
+
+    eligible = []
+    for item in sources.get("sources", []):
+        if wanted_codename and str(item.get("codename") or "").strip().upper() != wanted_codename:
+            continue
+        if wanted_region and str(item.get("region") or "").strip().upper() != wanted_region:
+            continue
+        if is_eligible(item, state, max_attempts=max_attempts):
+            eligible.append(item)
+
     if not eligible:
         return None
+
     # Prefer never-tried firmware before retrying a failed source, so one broken
-    # package cannot block the queue for multiple scheduled runs.
+    # package cannot block the queue for multiple manual runs.
     selected = dict(
         sorted(
             eligible,
@@ -120,11 +135,23 @@ def mark_state(state: dict, selected: dict, status: str, *, error: str | None = 
 def cmd_select(args: argparse.Namespace) -> int:
     sources = load_json(args.sources, {"schemaVersion": 1, "sources": []})
     state = load_json(args.state, {"schemaVersion": 1, "records": {}})
-    selected = select_next(sources, state, max_attempts=args.max_attempts)
+    selected = select_next(
+        sources,
+        state,
+        max_attempts=args.max_attempts,
+        codename=args.codename,
+        region=args.region,
+    )
     if selected is None:
         if args.output.exists():
             args.output.unlink()
-        print("No eligible full firmware source is waiting for ingestion")
+        filters = []
+        if args.codename:
+            filters.append(f"codename={args.codename}")
+        if args.region:
+            filters.append(f"region={args.region}")
+        suffix = f" matching {', '.join(filters)}" if filters else ""
+        print(f"No eligible full firmware source is waiting for ingestion{suffix}")
         return 2
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(selected, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -161,6 +188,8 @@ def main() -> int:
     select.add_argument("state", type=Path)
     select.add_argument("output", type=Path)
     select.add_argument("--max-attempts", type=int, default=MAX_ATTEMPTS)
+    select.add_argument("--codename", help="Only select this device codename, for example X6896")
+    select.add_argument("--region", help="Only select this region, for example IN or OP")
     select.set_defaults(func=cmd_select)
 
     mark = sub.add_parser("mark")
