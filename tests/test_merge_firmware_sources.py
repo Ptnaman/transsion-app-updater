@@ -1,14 +1,14 @@
 from scripts.merge_firmware_sources import merge_sources
 
 
-def test_merge_sources_refreshes_url_for_same_firmware_and_preserves_metadata():
+def test_merge_sources_refreshes_url_migrates_legacy_codename_and_preserves_metadata():
     existing = {
         "sources": [
             {
                 "url": "https://example.com/old-token.zip",
                 "brand": "TECNO",
                 "device": "Old Name",
-                "codename": "LJ8k",
+                "codename": "TECNO-LJ8k",
                 "region": "IN",
                 "sourceBuild": "BUILD-1",
                 "note": "keep",
@@ -24,6 +24,7 @@ def test_merge_sources_refreshes_url_for_same_firmware_and_preserves_metadata():
                 "codename": "LJ8k",
                 "region": "IN",
                 "sourceBuild": "BUILD-1",
+                "sizeMb": 4096.0,
             },
             {
                 "url": "https://example.com/b.zip",
@@ -41,3 +42,4 @@ def test_merge_sources_refreshes_url_for_same_firmware_and_preserves_metadata():
     assert first["url"] == "https://example.com/new-token.zip"
     assert first["device"] == "POVA Curve 5G"
     assert first["note"] == "keep"
+    assert first["sizeMb"] == 4096.0
