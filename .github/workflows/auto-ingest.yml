@@ -2,6 +2,17 @@ name: Process next firmware (manual)
 
 on:
   workflow_dispatch:
+    inputs:
+      codename:
+        description: Device codename to process (example X6896). Leave blank for next available.
+        required: false
+        default: ''
+        type: string
+      region:
+        description: Optional region filter (example IN or OP)
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: write
@@ -27,12 +38,22 @@ jobs:
       - name: Select next full firmware
         id: select
         shell: bash
+        env:
+          CODENAME_FILTER: ${{ inputs.codename }}
+          REGION_FILTER: ${{ inputs.region }}
         run: |
           set +e
-          python scripts/ingestion_queue.py select \
+          cmd=(python scripts/ingestion_queue.py select \
             data/firmware_sources.json \
             data/ingestion_state.json \
-            selected-source.json
+            selected-source.json)
+          if [ -n "$CODENAME_FILTER" ]; then
+            cmd+=(--codename "$CODENAME_FILTER")
+          fi
+          if [ -n "$REGION_FILTER" ]; then
+            cmd+=(--region "$REGION_FILTER")
+          fi
+          "${cmd[@]}"
           status=$?
           set -e
           if [ "$status" -eq 2 ]; then
