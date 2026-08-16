@@ -49,11 +49,11 @@ jobs:
           from pathlib import Path
 
           from firmware.ingest_firmware import (
-              choose_app_partitions,
+              APP_PARTITIONS,
               discover_partition_images,
               extract_payload_partition,
-              payload_partition_names,
               process_partition_image,
+              run,
           )
 
           catalog = json.loads(Path('data/firmware_sources.json').read_text(encoding='utf-8'))
@@ -68,20 +68,24 @@ jobs:
               raise SystemExit('No suitable full OTA source found in firmware source catalog')
           source = candidates[0]
 
-          available = payload_partition_names(source['url'])
-          selected = choose_app_partitions(available)
-          priority = ['product', 'system_ext', 'my_product', 'vendor', 'odm', 'system']
-          partition = None
-          for preferred in priority:
-              for candidate in selected:
-                  base = candidate[:-2] if candidate.endswith(('_a', '_b')) else candidate
-                  if base == preferred:
-                      partition = candidate
-                      break
-              if partition:
-                  break
-          if not partition:
-              raise SystemExit(f'No app-bearing partition available: {sorted(available)}')
+          listed = run(['payload-dumper', 'list', source['url'], '--json'])
+          partition_info = json.loads(listed.stdout)
+          useful_bases = {'product', 'system_ext', 'my_product', 'system'}
+          ranked = []
+          fallback = []
+          for name, info in partition_info.items():
+              base = name[:-2] if name.endswith(('_a', '_b')) else name
+              if base not in APP_PARTITIONS:
+                  continue
+              size_bytes = int(info.get('size_in_bytes') or 0)
+              row = (size_bytes if size_bytes > 0 else 2**63, name, info)
+              fallback.append(row)
+              if base in useful_bases:
+                  ranked.append(row)
+          choices = ranked or fallback
+          if not choices:
+              raise SystemExit(f'No app-bearing partition available: {sorted(partition_info)}')
+          _, partition, info = min(choices)
 
           work = Path('smoke-work')
           images = work / 'images'
@@ -95,6 +99,8 @@ jobs:
               'sourceBuild': source.get('sourceBuild'),
               'sourceSizeMb': source.get('sizeMb'),
               'partition': partition,
+              'partitionSizeBytes': info.get('size_in_bytes'),
+              'partitionSizeReadable': info.get('size_readable'),
               'partitions': [],
               'failures': [],
           }
@@ -123,7 +129,10 @@ jobs:
               raise
           else:
               Path('smoke-result.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
-              print(f"Smoke success: {source['device']} {partition} -> {report['apkCount']} APK(s)")
+              print(
+                  f"Smoke success: {source['device']} {partition} "
+                  f"({info.get('size_readable')}) -> {report['apkCount']} APK(s)"
+              )
           finally:
               shutil.rmtree(work, ignore_errors=True)
           PY
