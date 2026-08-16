@@ -27,6 +27,15 @@ def test_queue_prefers_india_then_smaller_full_ota():
     assert selected["device"] == "small-in"
 
 
+def test_queue_prefers_untried_source_before_retry():
+    failed = source("failed-small", 1500)
+    fresh = source("fresh-large", 5000, build="BUILD-2")
+    state = mark_state({"records": {}}, failed, "failed", error="boom")
+    selected = select_next({"sources": [failed, fresh]}, state)
+    assert selected is not None
+    assert selected["device"] == "fresh-large"
+
+
 def test_successful_firmware_is_not_selected_again():
     item = source("done", 3000)
     state = mark_state({"records": {}}, item, "success")
