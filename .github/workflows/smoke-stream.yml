@@ -1,0 +1,138 @@
+name: Smoke test streamed firmware
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/smoke-stream.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+
+      - name: Install firmware tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y android-sdk-libsparse-utils e2fsprogs erofs-utils
+          go install github.com/xishang0128/payload-dumper-go/cmd/payload-dumper@v0.1.6
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Stream one real app partition
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json
+          import shutil
+          from pathlib import Path
+
+          from firmware.ingest_firmware import (
+              choose_app_partitions,
+              discover_partition_images,
+              extract_payload_partition,
+              payload_partition_names,
+              process_partition_image,
+          )
+
+          catalog = json.loads(Path('data/firmware_sources.json').read_text(encoding='utf-8'))
+          candidates = [
+              item for item in catalog.get('sources', [])
+              if item.get('brand') == 'Infinix'
+              and item.get('codename') == 'X6871'
+              and item.get('region') == 'IN'
+              and float(item.get('sizeMb') or 0) > 5000
+          ]
+          if not candidates:
+              raise SystemExit('No suitable full OTA source found in firmware source catalog')
+          source = candidates[0]
+
+          available = payload_partition_names(source['url'])
+          selected = choose_app_partitions(available)
+          priority = ['product', 'system_ext', 'my_product', 'vendor', 'odm', 'system']
+          partition = None
+          for preferred in priority:
+              for candidate in selected:
+                  base = candidate[:-2] if candidate.endswith(('_a', '_b')) else candidate
+                  if base == preferred:
+                      partition = candidate
+                      break
+              if partition:
+                  break
+          if not partition:
+              raise SystemExit(f'No app-bearing partition available: {sorted(available)}')
+
+          work = Path('smoke-work')
+          images = work / 'images'
+          staged = Path('smoke-apks')
+          report = {
+              'schemaVersion': 1,
+              'brand': source.get('brand'),
+              'device': source.get('device'),
+              'codename': source.get('codename'),
+              'region': source.get('region'),
+              'sourceBuild': source.get('sourceBuild'),
+              'sourceSizeMb': source.get('sizeMb'),
+              'partition': partition,
+              'partitions': [],
+              'failures': [],
+          }
+
+          try:
+              extract_payload_partition(source['url'], partition, images)
+              image_files = discover_partition_images(images)
+              if not image_files:
+                  raise RuntimeError(f'No partition image produced for {partition}')
+              apk_count = 0
+              for image in image_files:
+                  apk_count += process_partition_image(
+                      image,
+                      partition,
+                      work,
+                      staged,
+                      report,
+                      streamed=True,
+                  )
+              report['apkCount'] = apk_count
+              if apk_count <= 0:
+                  raise RuntimeError(f'Partition {partition} produced no APKs')
+          except Exception as exc:
+              report['failures'].append({'error': str(exc)})
+              Path('smoke-result.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
+              raise
+          else:
+              Path('smoke-result.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
+              print(f"Smoke success: {source['device']} {partition} -> {report['apkCount']} APK(s)")
+          finally:
+              shutil.rmtree(work, ignore_errors=True)
+          PY
+
+      - name: Upload smoke report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: streamed-firmware-smoke-${{ github.run_id }}
+          if-no-files-found: ignore
+          retention-days: 7
+          path: smoke-result.json
