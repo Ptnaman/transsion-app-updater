@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
+import re
 import shutil
 import subprocess
 import tarfile
@@ -37,6 +37,10 @@ def run(cmd: list[str], *, check: bool = True) -> subprocess.CompletedProcess[st
         detail = (proc.stderr or proc.stdout).strip()
         raise IngestError(f"Command failed ({proc.returncode}): {' '.join(cmd)}\n{detail}")
     return proc
+
+
+def is_http_source(source: str) -> bool:
+    return urlparse(source).scheme.lower() in {"http", "https"}
 
 
 def _safe_target(root: Path, relative: str) -> Path:
@@ -130,14 +134,16 @@ def download_source(source: str, dest_dir: Path) -> Path:
     return target
 
 
-def payload_partition_names(payload: Path) -> set[str]:
+def payload_partition_names(payload: str | Path) -> set[str]:
     if shutil.which("payload-dumper") is None:
-        raise IngestError("payload-dumper is required to unpack payload.bin")
+        raise IngestError("payload-dumper is required to inspect/extract payload firmware")
     proc = run(["payload-dumper", "list", str(payload), "--json"])
     try:
         data = json.loads(proc.stdout)
     except json.JSONDecodeError as exc:
         raise IngestError("payload-dumper returned invalid partition JSON") from exc
+    if not isinstance(data, dict):
+        raise IngestError("payload-dumper partition output was not a JSON object")
     return set(data.keys())
 
 
@@ -151,22 +157,27 @@ def choose_app_partitions(available: set[str]) -> list[str]:
     return wanted
 
 
-def extract_payload(payload: Path, dest: Path) -> list[str]:
-    available = payload_partition_names(payload)
-    selected = choose_app_partitions(available)
-    if not selected:
-        raise IngestError(f"No app-bearing partitions found in {payload}")
+def extract_payload_partition(payload: str | Path, partition: str, dest: Path) -> None:
     dest.mkdir(parents=True, exist_ok=True)
-    run([
-        "payload-dumper",
-        "extract",
-        str(payload),
-        "--out",
-        str(dest),
-        "--partitions",
-        ",".join(selected),
-    ])
-    return selected
+    run(
+        [
+            "payload-dumper",
+            "extract",
+            str(payload),
+            "--out",
+            str(dest),
+            "--partitions",
+            partition,
+            "--workers",
+            "2",
+            "--http-workers",
+            "4",
+            "--http-cache-size",
+            "64M",
+            "--max-buffer-mb",
+            "64",
+        ]
+    )
 
 
 def is_sparse_image(path: Path) -> bool:
@@ -242,8 +253,123 @@ def collect_apks(root: Path) -> list[Path]:
     return sorted(p for p in root.rglob("*.apk") if p.is_file())
 
 
+def safe_component(value: str) -> str:
+    return re.sub(r"[^A-Za-z0-9_.-]+", "_", value).strip("._") or "unknown"
+
+
+def stage_apks(source_root: Path, staging_root: Path, namespace: str) -> int:
+    count = 0
+    namespace_root = staging_root / safe_component(namespace)
+    for apk in collect_apks(source_root):
+        relative = apk.relative_to(source_root)
+        target = namespace_root / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.exists():
+            stem, suffix = target.stem, target.suffix
+            index = 2
+            while target.exists():
+                target = target.with_name(f"{stem}-{index}{suffix}")
+                index += 1
+        shutil.copy2(apk, target)
+        count += 1
+    return count
+
+
+def process_partition_image(
+    image: Path,
+    partition: str,
+    partition_work: Path,
+    staging_root: Path,
+    report: dict,
+    *,
+    streamed: bool,
+) -> int:
+    filesystem_dir = partition_work / "filesystem"
+    raw_dir = partition_work / "raw"
+    fs_type = extract_partition_image(image, filesystem_dir, raw_dir)
+    apk_count = stage_apks(filesystem_dir, staging_root, partition)
+    report["partitions"].append(
+        {
+            "name": partition,
+            "filesystem": fs_type,
+            "apkCount": apk_count,
+            "streamed": streamed,
+        }
+    )
+    return apk_count
+
+
+def process_payload_source(
+    payload: str | Path,
+    workdir: Path,
+    staging_root: Path,
+    report: dict,
+    *,
+    label: str,
+    streamed: bool,
+) -> int:
+    available = payload_partition_names(payload)
+    selected = choose_app_partitions(available)
+    if not selected:
+        raise IngestError(f"No app-bearing partitions found in {label}")
+
+    report["payloads"].append(
+        {
+            "label": label,
+            "partitions": selected,
+            "streamed": streamed,
+        }
+    )
+
+    total = 0
+    for partition in selected:
+        partition_work = workdir / "partition-work" / f"{safe_component(label)}-{safe_component(partition)}"
+        shutil.rmtree(partition_work, ignore_errors=True)
+        images_dir = partition_work / "images"
+        try:
+            extract_payload_partition(payload, partition, images_dir)
+            images = discover_partition_images(images_dir)
+            if not images:
+                raise IngestError(f"payload-dumper produced no supported image for {partition}")
+            for image in images:
+                total += process_partition_image(
+                    image,
+                    partition,
+                    partition_work,
+                    staging_root,
+                    report,
+                    streamed=streamed,
+                )
+        except Exception as exc:
+            report["failures"].append(
+                {
+                    "stage": "payload-partition",
+                    "label": label,
+                    "partition": partition,
+                    "error": str(exc),
+                }
+            )
+        finally:
+            # Keep only staged APKs and compact JSON reports. Large images/filesystems are disposable.
+            shutil.rmtree(partition_work, ignore_errors=True)
+    return total
+
+
+def unpack_downloaded_source(source_path: Path, unpacked: Path) -> None:
+    if source_path.is_dir():
+        shutil.copytree(source_path, unpacked / source_path.name, dirs_exist_ok=True)
+    elif is_archive(source_path):
+        if zipfile.is_zipfile(source_path):
+            safe_extract_zip(source_path, unpacked)
+        else:
+            safe_extract_tar(source_path, unpacked)
+    else:
+        shutil.copy2(source_path, unpacked / source_path.name)
+    expand_archives(unpacked)
+
+
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Extract APK-bearing partitions from Android firmware/OTA packages")
+    parser = argparse.ArgumentParser(description="Extract and stage APKs from Android firmware/OTA packages")
     parser.add_argument("source", help="Local firmware path or HTTP(S) URL")
     parser.add_argument("--workdir", type=Path, default=Path("firmware-work"))
     parser.add_argument("--output", type=Path, default=Path("ingest-result.json"))
@@ -252,73 +378,108 @@ def main() -> int:
     workdir = args.workdir.resolve()
     downloads = workdir / "downloads"
     unpacked = workdir / "unpacked"
-    payload_out = workdir / "payload"
-    fs_out = workdir / "filesystems"
-    raw_out = workdir / "raw"
-    for directory in (downloads, unpacked, payload_out, fs_out, raw_out):
+    staging_root = workdir / "apks"
+    for directory in (downloads, unpacked, staging_root):
         directory.mkdir(parents=True, exist_ok=True)
 
     report: dict = {
-        "schemaVersion": 1,
+        "schemaVersion": 2,
         "source": args.source,
+        "mode": None,
         "payloads": [],
         "partitions": [],
         "failures": [],
         "apkCount": 0,
-        "apkRoot": str(workdir),
+        "apkRoot": str(staging_root),
     }
 
+    total_apks = 0
+
+    # Fast path for modern A/B OTA packages: payload-dumper-go can read HTTP(S) OTA ZIP URLs
+    # directly using range requests. This avoids keeping the full 7-10 GB OTA ZIP on the runner.
+    if is_http_source(args.source):
+        try:
+            payload_partition_names(args.source)
+        except Exception as exc:
+            report["failures"].append(
+                {
+                    "stage": "remote-payload-probe",
+                    "error": str(exc),
+                    "fallback": "full-download",
+                }
+            )
+        else:
+            report["mode"] = "streamed-payload"
+            try:
+                total_apks += process_payload_source(
+                    args.source,
+                    workdir,
+                    staging_root,
+                    report,
+                    label="remote-ota",
+                    streamed=True,
+                )
+            except Exception as exc:
+                report["failures"].append({"stage": "remote-payload", "error": str(exc)})
+            report["apkCount"] = total_apks
+            args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            print(f"Streamed firmware ingestion found {total_apks} APK(s); {len(report['failures'])} failure(s).")
+            return 0 if total_apks else 3
+
+    # Fallback for non-payload firmware containers and local files/directories.
+    report["mode"] = "download-and-unpack" if is_http_source(args.source) else "local-unpack"
     try:
         source_path = download_source(args.source, downloads)
-        if source_path.is_dir():
-            shutil.copytree(source_path, unpacked / source_path.name, dirs_exist_ok=True)
-        elif is_archive(source_path):
-            if zipfile.is_zipfile(source_path):
-                safe_extract_zip(source_path, unpacked)
-            else:
-                safe_extract_tar(source_path, unpacked)
-        else:
-            shutil.copy2(source_path, unpacked / source_path.name)
-        expand_archives(unpacked)
+        unpack_downloaded_source(source_path, unpacked)
     except Exception as exc:
         report["failures"].append({"stage": "source", "error": str(exc)})
-        args.output.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+        args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         return 2
+
+    # APKs may exist directly in a vendor archive without partition images.
+    total_apks += stage_apks(unpacked, staging_root, "direct")
 
     payloads = sorted(p for p in unpacked.rglob("payload.bin") if p.is_file())
     for index, payload in enumerate(payloads):
-        out = payload_out / f"payload-{index}"
         try:
-            selected = extract_payload(payload, out)
-            report["payloads"].append({"path": str(payload), "partitions": selected})
+            total_apks += process_payload_source(
+                payload,
+                workdir,
+                staging_root,
+                report,
+                label=f"payload-{index}",
+                streamed=False,
+            )
         except Exception as exc:
-            report["failures"].append({"stage": "payload", "path": str(payload), "error": str(exc)})
+            report["failures"].append(
+                {"stage": "payload", "path": str(payload), "error": str(exc)}
+            )
 
-    image_roots = [unpacked, payload_out]
-    images: list[Path] = []
-    seen_images: set[Path] = set()
-    for root in image_roots:
-        for image in discover_partition_images(root):
-            resolved = image.resolve()
-            if resolved not in seen_images:
-                seen_images.add(resolved)
-                images.append(image)
-
-    for index, image in enumerate(images):
+    # Some firmware archives contain system/product/vendor images directly instead of payload.bin.
+    for index, image in enumerate(discover_partition_images(unpacked)):
         partition = normalize_partition_name(image) or image.stem
-        dest = fs_out / f"{index}-{partition}"
+        partition_work = workdir / "partition-work" / f"standalone-{index}-{safe_component(partition)}"
+        shutil.rmtree(partition_work, ignore_errors=True)
         try:
-            fs_type = extract_partition_image(image, dest, raw_out)
-            report["partitions"].append({"path": str(image), "name": partition, "filesystem": fs_type, "output": str(dest)})
+            total_apks += process_partition_image(
+                image,
+                partition,
+                partition_work,
+                staging_root,
+                report,
+                streamed=False,
+            )
         except Exception as exc:
-            report["failures"].append({"stage": "partition", "path": str(image), "error": str(exc)})
+            report["failures"].append(
+                {"stage": "partition", "path": str(image), "error": str(exc)}
+            )
+        finally:
+            shutil.rmtree(partition_work, ignore_errors=True)
 
-    apks = collect_apks(workdir)
-    report["apkCount"] = len(apks)
-    report["apkRoot"] = str(workdir)
+    report["apkCount"] = len(collect_apks(staging_root))
     args.output.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print(f"Firmware ingestion found {len(apks)} APK(s); {len(report['failures'])} failure(s).")
-    return 0 if apks else 3
+    print(f"Firmware ingestion staged {report['apkCount']} APK(s); {len(report['failures'])} failure(s).")
+    return 0 if report["apkCount"] else 3
 
 
 if __name__ == "__main__":
