@@ -1,0 +1,135 @@
+name: Ingest firmware
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_url:
+        description: Direct public firmware/OTA URL
+        required: true
+        type: string
+      brand:
+        description: Brand
+        required: true
+        type: choice
+        options:
+          - TECNO
+          - Infinix
+      device:
+        description: Device marketing name
+        required: true
+        type: string
+      codename:
+        description: Device codename/model code
+        required: true
+        type: string
+      region:
+        description: Region code (for example IN, GL, OP)
+        required: true
+        default: IN
+        type: string
+      build:
+        description: Source firmware build/version
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: firmware-catalog-write
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    env:
+      SOURCE_URL: ${{ inputs.source_url }}
+      BRAND: ${{ inputs.brand }}
+      DEVICE: ${{ inputs.device }}
+      CODENAME: ${{ inputs.codename }}
+      REGION: ${{ inputs.region }}
+      BUILD: ${{ inputs.build }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.x'
+
+      - name: Install firmware tools
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y android-sdk-libsparse-utils e2fsprogs erofs-utils
+          go install github.com/xishang0128/payload-dumper-go/cmd/payload-dumper@v0.1.6
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          if [ -z "$SDK_ROOT" ]; then
+            echo "Android SDK root is not available on this runner" >&2
+            exit 1
+          fi
+          BUILD_TOOLS="$(find "$SDK_ROOT/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n 1)"
+          if [ -z "$BUILD_TOOLS" ]; then
+            echo "Android SDK build-tools not found" >&2
+            exit 1
+          fi
+          echo "$BUILD_TOOLS" >> "$GITHUB_PATH"
+
+      - name: Extract firmware apps
+        shell: bash
+        run: |
+          set -euo pipefail
+          python firmware/ingest_firmware.py "$SOURCE_URL" \
+            --workdir firmware-work \
+            --output ingest-result.json
+
+      - name: Scan APK metadata
+        shell: bash
+        run: |
+          set -euo pipefail
+          python scanner/scan_apks.py firmware-work \
+            --brand "$BRAND" \
+            --device "$DEVICE" \
+            --codename "$CODENAME" \
+            --region "$REGION" \
+            --build "$BUILD" \
+            --output scan-result.json
+
+      - name: Merge app catalog
+        run: python scripts/merge_catalog.py scan-result.json data/catalog.json
+
+      - name: Commit catalog changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- data/catalog.json; then
+            echo "No new app releases to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/catalog.json
+          git commit -m "Update app catalog from firmware"
+          git push
+
+      - name: Upload scan reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-scan-${{ github.run_id }}
+          if-no-files-found: ignore
+          retention-days: 14
+          path: |
+            ingest-result.json
+            scan-result.json
