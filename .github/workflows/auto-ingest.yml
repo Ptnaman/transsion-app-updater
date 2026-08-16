@@ -1,14 +1,7 @@
-name: Auto ingest firmware
+name: Process next firmware (manual)
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '53 */6 * * *'
-  push:
-    branches:
-      - main
-    paths:
-      - '.github/workflows/auto-ingest.yml'
 
 permissions:
   contents: write
@@ -162,17 +155,27 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/catalog.json data/ingestion_state.json
-          git commit -m "Process next firmware app catalog source"
+          git commit -m "Process firmware app catalog source"
           git push
+
+      - name: Upload extracted APKs
+        if: steps.select.outputs.selected == 'true' && steps.ingest.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-apks-${{ github.run_id }}
+          if-no-files-found: warn
+          retention-days: 7
+          path: firmware-work/apks/
 
       - name: Upload ingestion reports
         if: steps.select.outputs.selected == 'true' && always()
         uses: actions/upload-artifact@v4
         with:
-          name: auto-ingest-${{ github.run_id }}
+          name: firmware-scan-${{ github.run_id }}
           if-no-files-found: ignore
           retention-days: 14
           path: |
+            selected-source.json
             ingest-result.json
             scan-result.json
             failure-summary.txt
