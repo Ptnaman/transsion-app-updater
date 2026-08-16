@@ -87,6 +87,7 @@ jobs:
           echo "$BUILD_TOOLS" >> "$GITHUB_PATH"
 
       - name: Extract and stage firmware apps
+        id: ingest
         shell: bash
         run: |
           set -euo pipefail
@@ -95,6 +96,7 @@ jobs:
             --output ingest-result.json
 
       - name: Scan APK metadata
+        id: scan
         shell: bash
         run: |
           set -euo pipefail
@@ -124,7 +126,7 @@ jobs:
           git push
 
       - name: Upload extracted APKs
-        if: success()
+        if: always() && steps.ingest.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: firmware-apks-${{ github.run_id }}
