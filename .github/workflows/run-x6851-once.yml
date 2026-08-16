@@ -1,9 +1,6 @@
 name: Extract X6851 XOS 16.3 apps
 
 on:
-  push:
-    paths:
-      - '.github/workflows/run-x6851-once.yml'
   workflow_dispatch:
 
 permissions:
