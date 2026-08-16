@@ -1,4 +1,4 @@
-name: Ingest firmware
+name: Ingest firmware (manual)
 
 on:
   workflow_dispatch:
@@ -122,6 +122,15 @@ jobs:
           git add data/catalog.json
           git commit -m "Update app catalog from firmware"
           git push
+
+      - name: Upload extracted APKs
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-apks-${{ github.run_id }}
+          if-no-files-found: warn
+          retention-days: 7
+          path: firmware-work/apks/
 
       - name: Upload scan reports
         if: always()
