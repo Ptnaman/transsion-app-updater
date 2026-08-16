@@ -159,7 +159,7 @@ jobs:
           git push
 
       - name: Upload extracted APKs
-        if: steps.select.outputs.selected == 'true' && steps.ingest.outcome == 'success'
+        if: always() && steps.select.outputs.selected == 'true' && steps.ingest.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: firmware-apks-${{ github.run_id }}
