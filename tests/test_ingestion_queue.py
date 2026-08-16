@@ -49,3 +49,33 @@ def test_failed_firmware_retries_only_up_to_limit():
         state = mark_state(state, item, "failed", error="boom")
     assert state["records"][firmware_identity(item)]["attempts"] == 3
     assert select_next({"sources": [item]}, state, max_attempts=3) is None
+
+
+def test_queue_can_filter_exact_codename():
+    sources = {
+        "sources": [
+            source("X6871", 3000),
+            source("X6896", 5000),
+        ]
+    }
+    selected = select_next(sources, {"records": {}}, codename="x6896")
+    assert selected is not None
+    assert selected["codename"] == "X6896"
+
+
+def test_queue_can_filter_codename_and_region():
+    sources = {
+        "sources": [
+            source("X6896", 5000, region="OP", build="OP-BUILD"),
+            source("X6896", 6000, region="IN", build="IN-BUILD"),
+        ]
+    }
+    selected = select_next(sources, {"records": {}}, codename="X6896", region="IN")
+    assert selected is not None
+    assert selected["region"] == "IN"
+    assert selected["sourceBuild"] == "IN-BUILD"
+
+
+def test_queue_returns_none_when_filtered_codename_is_missing():
+    sources = {"sources": [source("X6871", 3000)]}
+    assert select_next(sources, {"records": {}}, codename="X6896") is None
