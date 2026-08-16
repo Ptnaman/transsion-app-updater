@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       codename:
-        description: Device codename to process (example X6896). Leave blank for next available.
+        description: Device codename to process (example X6885). Leave blank for next available.
         required: false
         default: ''
         type: string
@@ -13,6 +13,11 @@ on:
         required: false
         default: ''
         type: string
+      allow_incremental:
+        description: Allow small incremental/delta OTA under 1 GB (advanced)
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
@@ -35,12 +40,13 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Select next full firmware
+      - name: Select firmware source
         id: select
         shell: bash
         env:
           CODENAME_FILTER: ${{ inputs.codename }}
           REGION_FILTER: ${{ inputs.region }}
+          ALLOW_INCREMENTAL: ${{ inputs.allow_incremental }}
         run: |
           set +e
           cmd=(python scripts/ingestion_queue.py select \
@@ -52,6 +58,9 @@ jobs:
           fi
           if [ -n "$REGION_FILTER" ]; then
             cmd+=(--region "$REGION_FILTER")
+          fi
+          if [ "$ALLOW_INCREMENTAL" = "true" ]; then
+            cmd+=(--allow-small)
           fi
           "${cmd[@]}"
           status=$?
