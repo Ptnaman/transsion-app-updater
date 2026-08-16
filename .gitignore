@@ -2,6 +2,8 @@ __pycache__/
 *.pyc
 .venv/
 scan-result.json
+ingest-result.json
+firmware-work/
 input-apks/
 *.apk
 *.apks
