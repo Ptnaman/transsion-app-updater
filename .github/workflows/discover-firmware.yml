@@ -1,0 +1,83 @@
+name: Discover firmware sources
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 */6 * * *'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: firmware-source-discovery
+  cancel-in-progress: false
+
+jobs:
+  discover:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout app updater
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Clone OTA prober read-only
+        run: git clone --depth 1 --branch master https://github.com/Ptnaman/transsion-ota-prober.git ota-prober
+
+      - name: Install OTA prober
+        run: python -m pip install -e ./ota-prober
+
+      - name: Discover current TECNO and Infinix OTA URLs
+        id: prober
+        shell: bash
+        run: |
+          set +e
+          (
+            cd ota-prober
+            checkota -d configs/ --jobs 4 --timeout 600 --dry-run --skip-telegram
+          ) 2>&1 | tee prober.log
+          status=${PIPESTATUS[0]}
+          set -e
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+
+      - name: Parse discovered firmware sources
+        shell: bash
+        run: |
+          set +e
+          python scripts/parse_prober_log.py prober.log discovered-sources.json
+          parse_status=$?
+          set -e
+          if [ "$parse_status" -ne 0 ] && [ "$parse_status" -ne 2 ]; then
+            exit "$parse_status"
+          fi
+          python scripts/merge_firmware_sources.py discovered-sources.json data/firmware_sources.json
+
+      - name: Commit source catalog changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git diff --quiet -- data/firmware_sources.json; then
+            echo "No firmware source changes"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/firmware_sources.json
+          git commit -m "Refresh firmware source catalog"
+          git push
+
+      - name: Upload discovery log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-discovery-${{ github.run_id }}
+          if-no-files-found: ignore
+          retention-days: 7
+          path: |
+            prober.log
+            discovered-sources.json
