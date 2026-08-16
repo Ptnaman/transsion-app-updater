@@ -12,7 +12,25 @@ def load(path: Path, fallback: dict) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def normalize_codename(value: object) -> str:
+    text = str(value or "").strip()
+    lower = text.lower()
+    for prefix in ("tecno-", "infinix-", "itel-"):
+        if lower.startswith(prefix):
+            return text[len(prefix) :]
+    return text
+
+
+def normalize_item(item: dict) -> dict:
+    normalized = dict(item)
+    codename = normalize_codename(normalized.get("codename"))
+    if codename:
+        normalized["codename"] = codename
+    return normalized
+
+
 def source_key(item: dict) -> tuple[str, ...]:
+    item = normalize_item(item)
     stable = (
         str(item.get("brand") or ""),
         str(item.get("codename") or ""),
@@ -26,10 +44,12 @@ def source_key(item: dict) -> tuple[str, ...]:
 
 def merge_sources(existing: dict, discovered: dict) -> dict:
     by_key: dict[tuple[str, ...], dict] = {}
-    for item in existing.get("sources", []):
+    for raw_item in existing.get("sources", []):
+        item = normalize_item(raw_item)
         if item.get("url"):
             by_key[source_key(item)] = item
-    for item in discovered.get("sources", []):
+    for raw_item in discovered.get("sources", []):
+        item = normalize_item(raw_item)
         if not item.get("url"):
             continue
         key = source_key(item)
