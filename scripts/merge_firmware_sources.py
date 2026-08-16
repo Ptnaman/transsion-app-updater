@@ -12,21 +12,32 @@ def load(path: Path, fallback: dict) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def source_key(item: dict) -> tuple[str, ...]:
+    stable = (
+        str(item.get("brand") or ""),
+        str(item.get("codename") or ""),
+        str(item.get("region") or ""),
+        str(item.get("sourceBuild") or ""),
+    )
+    if any(stable):
+        return ("firmware",) + stable
+    return ("url", str(item.get("url") or ""))
+
+
 def merge_sources(existing: dict, discovered: dict) -> dict:
-    by_url: dict[str, dict] = {}
+    by_key: dict[tuple[str, ...], dict] = {}
     for item in existing.get("sources", []):
-        url = item.get("url")
-        if url:
-            by_url[url] = item
+        if item.get("url"):
+            by_key[source_key(item)] = item
     for item in discovered.get("sources", []):
-        url = item.get("url")
-        if not url:
+        if not item.get("url"):
             continue
-        previous = by_url.get(url, {})
+        key = source_key(item)
+        previous = by_key.get(key, {})
         merged = {**previous, **{k: v for k, v in item.items() if v is not None}}
-        by_url[url] = merged
+        by_key[key] = merged
     sources = sorted(
-        by_url.values(),
+        by_key.values(),
         key=lambda item: (
             str(item.get("brand") or ""),
             str(item.get("device") or ""),
@@ -49,7 +60,7 @@ def main() -> int:
     merged = merge_sources(existing, discovered)
     args.catalog.parent.mkdir(parents=True, exist_ok=True)
     args.catalog.write_text(json.dumps(merged, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    print(f"Firmware source catalog contains {len(merged['sources'])} URL(s)")
+    print(f"Firmware source catalog contains {len(merged['sources'])} firmware record(s)")
     return 0
 
 
