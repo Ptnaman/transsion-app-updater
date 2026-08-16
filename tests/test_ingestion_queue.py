@@ -79,3 +79,21 @@ def test_queue_can_filter_codename_and_region():
 def test_queue_returns_none_when_filtered_codename_is_missing():
     sources = {"sources": [source("X6871", 3000)]}
     assert select_next(sources, {"records": {}}, codename="X6896") is None
+
+
+def test_small_incremental_ota_is_opt_in():
+    item = source("X6885", 98.3, region="OP", build="16.3.0-SP17")
+    sources = {"sources": [item]}
+
+    assert select_next(sources, {"records": {}}, codename="X6885", region="OP") is None
+
+    selected = select_next(
+        sources,
+        {"records": {}},
+        codename="X6885",
+        region="OP",
+        allow_small=True,
+    )
+    assert selected is not None
+    assert selected["codename"] == "X6885"
+    assert selected["sizeMb"] == 98.3
