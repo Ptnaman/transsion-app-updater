@@ -36,7 +36,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: firmware-catalog-write
+  group: transsion-data-writes
   cancel-in-progress: false
 
 jobs:
