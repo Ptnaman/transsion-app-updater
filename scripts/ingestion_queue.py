@@ -28,6 +28,11 @@ def firmware_identity(item: dict) -> str:
     return hashlib.sha256(encoded).hexdigest()[:24]
 
 
+def attempts_for(item: dict, state: dict) -> int:
+    record = state.get("records", {}).get(firmware_identity(item), {})
+    return int(record.get("attempts") or 0)
+
+
 def is_eligible(item: dict, state: dict, *, max_attempts: int = MAX_ATTEMPTS) -> bool:
     if not item.get("url") or not item.get("brand") or not item.get("codename"):
         return False
@@ -71,7 +76,14 @@ def select_next(sources: dict, state: dict, *, max_attempts: int = MAX_ATTEMPTS)
     ]
     if not eligible:
         return None
-    selected = dict(sorted(eligible, key=selection_key)[0])
+    # Prefer never-tried firmware before retrying a failed source, so one broken
+    # package cannot block the queue for multiple scheduled runs.
+    selected = dict(
+        sorted(
+            eligible,
+            key=lambda item: (attempts_for(item, state), selection_key(item)),
+        )[0]
+    )
     selected["firmwareId"] = firmware_identity(selected)
     return selected
 
