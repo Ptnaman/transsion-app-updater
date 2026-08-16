@@ -60,14 +60,56 @@ def parse_badging(text: str) -> dict[str, str | int | None]:
     }
 
 
-def parse_signer_sha256(text: str) -> str:
-    match = re.search(r"Signer #\d+ certificate SHA-256 digest:\s*([0-9A-Fa-f:]+)", text)
-    if not match:
-        raise ValueError("Could not parse signer SHA-256 from apksigner output")
-    raw = re.sub(r"[^0-9A-Fa-f]", "", match.group(1)).upper()
+def _normalize_sha256(value: str) -> str | None:
+    raw = re.sub(r"[^0-9A-Fa-f]", "", value).upper()
     if len(raw) != 64:
-        raise ValueError(f"Unexpected signer SHA-256 length: {len(raw)}")
+        return None
     return ":".join(raw[i : i + 2] for i in range(0, len(raw), 2))
+
+
+def parse_signer_sha256(text: str) -> str:
+    # apksigner output wording/separators can vary across Build Tools releases.
+    # Prefer a certificate SHA-256 line, but accept contiguous, colon-separated,
+    # dash-separated, or whitespace-separated hexadecimal digests.
+    for line in text.splitlines():
+        lowered = line.lower()
+        if "certificate" not in lowered or "sha-256" not in lowered or "digest" not in lowered:
+            continue
+
+        match = re.search(r"digest\s*:\s*(.+)$", line, flags=re.IGNORECASE)
+        if match:
+            normalized = _normalize_sha256(match.group(1))
+            if normalized:
+                return normalized
+
+        # Fallback for tools that omit the literal `digest:` token but still print
+        # a SHA-256 certificate value on the same line.
+        for candidate in re.findall(
+            r"(?:[0-9A-Fa-f]{64}|(?:[0-9A-Fa-f]{2}[\s:-]?){32})",
+            line,
+        ):
+            normalized = _normalize_sha256(candidate)
+            if normalized:
+                return normalized
+
+    # Last-resort fallback: only inspect lines mentioning SHA-256 to avoid
+    # accidentally using an unrelated 64-hex value from verbose output.
+    for line in text.splitlines():
+        if "sha-256" not in line.lower():
+            continue
+        for candidate in re.findall(
+            r"(?:[0-9A-Fa-f]{64}|(?:[0-9A-Fa-f]{2}[\s:-]?){32})",
+            line,
+        ):
+            normalized = _normalize_sha256(candidate)
+            if normalized:
+                return normalized
+
+    excerpt = " | ".join(line.strip() for line in text.splitlines() if line.strip())[:500]
+    raise ValueError(
+        "Could not parse signer SHA-256 from apksigner output"
+        + (f": {excerpt}" if excerpt else "")
+    )
 
 
 def scan_apk(path: Path, args: argparse.Namespace) -> ApkRecord:
