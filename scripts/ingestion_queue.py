@@ -33,7 +33,13 @@ def attempts_for(item: dict, state: dict) -> int:
     return int(record.get("attempts") or 0)
 
 
-def is_eligible(item: dict, state: dict, *, max_attempts: int = MAX_ATTEMPTS) -> bool:
+def is_eligible(
+    item: dict,
+    state: dict,
+    *,
+    max_attempts: int = MAX_ATTEMPTS,
+    allow_small: bool = False,
+) -> bool:
     if not item.get("url") or not item.get("brand") or not item.get("codename"):
         return False
     try:
@@ -41,7 +47,9 @@ def is_eligible(item: dict, state: dict, *, max_attempts: int = MAX_ATTEMPTS) ->
     except (TypeError, ValueError):
         return False
     # Small OTAs are usually incremental/delta packages and often need base images.
-    if size_mb < FULL_OTA_MIN_MB:
+    # They remain opt-in for manual runs because extraction may only succeed for
+    # partitions encoded without source-dependent operations.
+    if size_mb < FULL_OTA_MIN_MB and not allow_small:
         return False
 
     record = state.get("records", {}).get(firmware_identity(item), {})
@@ -75,6 +83,7 @@ def select_next(
     max_attempts: int = MAX_ATTEMPTS,
     codename: str | None = None,
     region: str | None = None,
+    allow_small: bool = False,
 ) -> dict | None:
     wanted_codename = (codename or "").strip().upper()
     wanted_region = (region or "").strip().upper()
@@ -85,7 +94,12 @@ def select_next(
             continue
         if wanted_region and str(item.get("region") or "").strip().upper() != wanted_region:
             continue
-        if is_eligible(item, state, max_attempts=max_attempts):
+        if is_eligible(
+            item,
+            state,
+            max_attempts=max_attempts,
+            allow_small=allow_small,
+        ):
             eligible.append(item)
 
     if not eligible:
@@ -141,6 +155,7 @@ def cmd_select(args: argparse.Namespace) -> int:
         max_attempts=args.max_attempts,
         codename=args.codename,
         region=args.region,
+        allow_small=args.allow_small,
     )
     if selected is None:
         if args.output.exists():
@@ -150,8 +165,11 @@ def cmd_select(args: argparse.Namespace) -> int:
             filters.append(f"codename={args.codename}")
         if args.region:
             filters.append(f"region={args.region}")
+        if args.allow_small:
+            filters.append("incremental=allowed")
         suffix = f" matching {', '.join(filters)}" if filters else ""
-        print(f"No eligible full firmware source is waiting for ingestion{suffix}")
+        kind = "firmware" if args.allow_small else "full firmware"
+        print(f"No eligible {kind} source is waiting for ingestion{suffix}")
         return 2
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(selected, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -188,8 +206,13 @@ def main() -> int:
     select.add_argument("state", type=Path)
     select.add_argument("output", type=Path)
     select.add_argument("--max-attempts", type=int, default=MAX_ATTEMPTS)
-    select.add_argument("--codename", help="Only select this device codename, for example X6896")
+    select.add_argument("--codename", help="Only select this device codename, for example X6885")
     select.add_argument("--region", help="Only select this region, for example IN or OP")
+    select.add_argument(
+        "--allow-small",
+        action="store_true",
+        help="Allow incremental/delta OTAs under 1 GB for explicit manual testing",
+    )
     select.set_defaults(func=cmd_select)
 
     mark = sub.add_parser("mark")
