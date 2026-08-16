@@ -1,5 +1,16 @@
 {
   "records": {
+    "05014d01e0b57570b0dcd0fe": {
+      "attempts": 1,
+      "brand": "Infinix",
+      "codename": "X6871",
+      "device": "Infinix GT 20 Pro",
+      "lastAttemptAt": "2026-08-16T07:52:20+00:00",
+      "region": "IN",
+      "sizeMb": 7130.8,
+      "sourceBuild": "Tcard_X6871-15.0.3.126-IN001PF001AZ",
+      "status": "success"
+    },
     "f488a450fe4d375116b4b462": {
       "attempts": 1,
       "brand": "Infinix",
