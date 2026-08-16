@@ -86,7 +86,7 @@ jobs:
           fi
           echo "$BUILD_TOOLS" >> "$GITHUB_PATH"
 
-      - name: Extract firmware apps
+      - name: Extract and stage firmware apps
         shell: bash
         run: |
           set -euo pipefail
@@ -98,7 +98,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python scanner/scan_apks.py firmware-work \
+          python scanner/scan_apks.py firmware-work/apks \
             --brand "$BRAND" \
             --device "$DEVICE" \
             --codename "$CODENAME" \
