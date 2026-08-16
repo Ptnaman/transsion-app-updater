@@ -44,7 +44,7 @@ Ptnaman/transsion-ota-prober (read-only dry-run discovery)
 
 ## Automatic firmware discovery
 
-`.github/workflows/discover-firmware.yml` runs every 6 hours. It temporarily clones `Ptnaman/transsion-ota-prober`, runs it with `--dry-run --skip-telegram`, parses only TECNO/Infinix results, and merges firmware metadata into `data/firmware_sources.json`.
+`.github/workflows/discover-firmware.yml` runs every 6 hours at minute `23` UTC. It temporarily clones `Ptnaman/transsion-ota-prober`, runs it with `--dry-run --skip-telegram`, parses only TECNO/Infinix results, and merges firmware metadata into `data/firmware_sources.json`.
 
 The old OTA-prober repository is read-only from this project. Its configs, processed state and Telegram setup are not changed.
 
@@ -58,6 +58,8 @@ Discovery records include:
 - source fingerprint
 - OTA size in MB
 - direct source URL
+
+The first live discovery validation collected 63 TECNO/Infinix firmware source records.
 
 ## Low-disk streamed firmware ingestion
 
@@ -75,6 +77,10 @@ Instead it processes app-bearing partitions one at a time:
 8. continue with the next partition.
 
 For firmware formats that cannot be read as a remote payload, a download-and-unpack fallback remains available.
+
+### Real firmware validation
+
+A live GitHub Actions smoke test used the discovered Infinix GT 20 Pro (`X6871`, India) OTA URL directly. It streamed the `system` partition (802.8 MB), extracted its filesystem, and found **75 APKs** without saving the complete OTA ZIP. This validates the remote OTA -> payload partition -> filesystem -> APK path on a real Transsion firmware source.
 
 ## APK scanning and compatibility data
 
@@ -98,19 +104,20 @@ Current queue policy:
 
 - prefers India (`IN`) sources, then global/other regions,
 - ignores packages below 1000 MB for automatic ingestion because these are commonly incremental/delta OTAs,
+- prefers never-tried firmware before retrying a failed source,
 - retries a failed firmware up to 3 times,
 - permanently skips a firmware after successful ingestion unless its stable firmware identity changes,
 - uses brand + codename + region + source build as the stable identity, so refreshed CDN URLs do not create duplicate work.
 
-`.github/workflows/auto-ingest.yml` implements the full queue -> extract -> scan -> merge -> state flow. Its recurring schedule is intentionally kept disabled until the real streamed-firmware smoke test is green.
+`.github/workflows/auto-ingest.yml` runs every 6 hours at minute `53` UTC, about 30 minutes after discovery. Each scheduled run processes at most one eligible full firmware source through extraction, APK scanning, catalog merge and ingestion-state update. Manual `workflow_dispatch` remains available.
 
 ## GitHub Actions
 
-- `test.yml` — Python unit tests.
-- `discover-firmware.yml` — 6-hour read-only OTA discovery.
+- `test.yml` — Python unit tests for code/test changes.
+- `discover-firmware.yml` — 6-hour read-only OTA discovery at `:23` UTC.
 - `smoke-stream.yml` — real streamed partition validation against a known TECNO/Infinix full OTA.
 - `ingest-firmware.yml` — manual full firmware ingestion with explicit device metadata.
-- `auto-ingest.yml` — controlled queue worker; schedule enabled only after smoke validation.
+- `auto-ingest.yml` — controlled queue worker every 6 hours at `:53` UTC.
 
 All workflows that write repository data use a shared concurrency lock to avoid competing pushes to `main`.
 
@@ -203,8 +210,9 @@ A future Android client can add Android signing-certificate lineage support for 
 - [x] Android sparse image conversion
 - [x] EROFS + ext filesystem extraction
 - [x] controlled automatic ingestion queue/state
-- [ ] pass first real streamed firmware partition smoke test
-- [ ] enable recurring automatic ingestion worker
+- [x] pass first real streamed firmware partition smoke test
+- [x] enable recurring automatic ingestion worker
+- [ ] validate first full all-partition automatic catalog ingestion
 - [ ] incremental OTA/base-image reconstruction
 - [ ] direct `super.img` adapter
 - [ ] official Play metadata adapter
