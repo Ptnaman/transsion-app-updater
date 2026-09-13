@@ -37,6 +37,10 @@ jobs:
       - name: Clone OTA prober
         run: git clone --depth 1 --branch master https://github.com/ramabondanp/transsion-ota-prober.git ota-prober
 
+      - name: Set Telegram channel link
+        run: |
+          sed -i 's#https://t.me/TranssionUpdatesTracker#https://t.me/tecnonamanupdate#g' ota-prober/checkota/telegram.py
+
       - name: Restore processed OTA state
         run: |
           if [ -f data/ota_processed_updates.txt ]; then
