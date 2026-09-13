@@ -48,20 +48,20 @@ jobs:
 
       - name: Check Transsion OTAs and notify Telegram
         env:
-          bot_token: ${{ secrets.BOT_TOKEN }}
-          chat_id: ${{ secrets.CHAT_ID }}
-          telegraph_token: ${{ secrets.TELEGRAPH_TOKEN }}
+          bot_token: ${{ secrets.BOT_TOKEN || secrets.bot_token }}
+          chat_id: ${{ secrets.CHAT_ID || secrets.chat_id }}
+          telegraph_token: ${{ secrets.TELEGRAPH_TOKEN || secrets.telegraph_token }}
           NOTIFY_EXISTING: ${{ inputs.notify_existing || 'false' }}
         shell: bash
         run: |
           set -euo pipefail
 
           if [ -z "${bot_token}" ] || [ -z "${chat_id}" ]; then
-            echo "BOT_TOKEN and CHAT_ID GitHub Actions secrets are required."
+            echo "Telegram secrets are missing. Expected BOT_TOKEN + CHAT_ID (or lowercase equivalents)."
             exit 1
           fi
 
-          # On the first scheduled run, establish a baseline without flooding Telegram
+          # First scheduled run creates a silent baseline instead of flooding Telegram
           # with every OTA that already exists. Manual dispatch can override this with
           # notify_existing=true.
           if [ ! -s ota-prober/processed_updates.txt ] && [ "${NOTIFY_EXISTING}" != "true" ]; then
