@@ -1,8 +1,6 @@
 name: Transsion OTA Telegram Monitor
 
 on:
-  schedule:
-    - cron: '*/30 * * * *'
   workflow_dispatch:
     inputs:
       notify_existing:
